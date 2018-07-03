@@ -16,7 +16,7 @@ namespace Barberos
     {
         Thread[] Barberas = new Thread[5];
         
-        private int barberos = 1, tiempo, Clientes_Esperando=0;
+        private int barberos = 0, tiempo, Clientes_Esperando=0;
         private PictureBox[] PicBarbero;
         private PictureBox[] picCliente_Esperando;
         private PictureBox[] picCliente_Satisfecho;
@@ -52,8 +52,6 @@ namespace Barberos
                 picCliente_Satisfecho4,
                 picCliente_Satisfecho5
             };
-            var v = new { form = this, index = barberos };
-            Barberas[barberos - 1].Start(v);
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -64,7 +62,7 @@ namespace Barberos
             }
             Clientes.Text = (Convert.ToInt32(Clientes.Text) + 1).ToString();
             Clientes_Esperando++;
-            var v = new { form = this, index = barberos};
+            var v = new { form = this, index = barberos };
             Barberas[barberos].Start(v);
         }
 
@@ -79,6 +77,8 @@ namespace Barberos
             {
                 while(barberos<numericUpDown1.Value)
                 {
+                    var v = new { form = this, index = barberos };
+                    Barberas[barberos].Start(v);
                     PicBarbero[barberos].Image = Properties.Resources.Barbera;
                     barberos++;
                 }
@@ -87,6 +87,7 @@ namespace Barberos
             {
                 while(barberos > numericUpDown1.Value)
                 {
+                    Barberas[barberos].Interrupt();
                     barberos--;
                     PicBarbero[barberos].Image = null;
                 }
@@ -112,17 +113,17 @@ namespace Barberos
 
         void Barbera_Cortando(int index)
         {
-            if (Clientes_Esperando>0)
+            while (Clientes_Esperando>0)
             {
+                Thread.Sleep(1000);
+                if (Clientes_Esperando < 5) picCliente_Esperando[Clientes_Esperando].Image = Properties.Resources.Silla_de_espera;
                 Clientes_Esperando--;
-                Thread.Sleep(1000);
-                picCliente_Esperando[barberos - 1].Image = Properties.Resources.Silla_de_espera;
-                PicBarbero[barberos - 1].Image = Properties.Resources.Barbera_cortando;
+                PicBarbero[barberos].Image = Properties.Resources.Barbera_cortando;
                 Thread.Sleep(tiempo);
-                PicBarbero[barberos - 1].Image = Properties.Resources.Barbera;
-                picCliente_Satisfecho[barberos - 1].Image = Properties.Resources.Cliente_Satisfecho;
+                PicBarbero[barberos].Image = Properties.Resources.Barbera;
+                picCliente_Satisfecho[barberos].Image = Properties.Resources.Cliente_Satisfecho;
                 Thread.Sleep(1000);
-                picCliente_Satisfecho[barberos - 1].Image = null;
+                picCliente_Satisfecho[barberos].Image = null;
             }
         }
     }
