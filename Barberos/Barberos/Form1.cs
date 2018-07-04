@@ -157,56 +157,68 @@ namespace Barberos
         void Barbero_Cortando(int index)
         {
             bool atendiendoCliente = true;
-            do
+
+            try
             {
-                int tiempo = 0;
-                Invoke(new Action(() => {
-                    picBarbero[index].Image = Properties.Resources.Barbera_cortando;
-                    picClienteAtendido[index].Image = Properties.Resources.Cliente;
-                    barCorte[index].Maximum = tiempoDeCorte;
-                    barCorte[index].Value = 0;
-                }));
-
-                while (tiempo < barCorte[index].Maximum)
+                do
                 {
-                    Thread.Sleep(1000);
-                    tiempo += 1000;
-                    Invoke(new Action(() => {
-                        barCorte[index].Value = tiempo;
-                    }));
-                }
-
-                Invoke(new Action(() => {
-                    picBarbero[index].Image = Properties.Resources.Barbera;
-                    picClienteAtendido[index].Image = Properties.Resources.Cliente_Satisfecho;
-                }));
-
-                Thread.Sleep(1000);
-
-                lock (this)
-                {
-                    if (clientesEsperando > 0 && !barberoDespedido[index])
+                    int tiempo = 0;
+                    Invoke(new Action(() =>
                     {
+                        picBarbero[index].Image = Properties.Resources.Barbera_cortando;
+                        picClienteAtendido[index].Image = Properties.Resources.Cliente;
+                        barCorte[index].Maximum = tiempoDeCorte;
+                        barCorte[index].Value = 0;
+                    }));
+
+                    while (tiempo < barCorte[index].Maximum)
+                    {
+                        Thread.Sleep(1000);
+                        tiempo += 1000;
                         Invoke(new Action(() =>
                         {
-                            Clientes.Text = (--clientesEsperando).ToString();
-                            picClienteEsperando[clientesEsperando].Image
-                                = Properties.Resources.Silla_de_espera;
+                            barCorte[index].Value = tiempo;
                         }));
                     }
-                    else atendiendoCliente = false;
-                }
-            }
-            while (atendiendoCliente && !barberoDespedido[index]);
 
-            Invoke(new Action(() => {
-                picClienteAtendido[index].Image = null;
-                barCorte[index].Value = 0;
-                if (barberoDespedido[index])
-                {
-                    picBarbero[index].Image = null;
+                    Invoke(new Action(() =>
+                    {
+                        picBarbero[index].Image = Properties.Resources.Barbera;
+                        picClienteAtendido[index].Image = Properties.Resources.Cliente_Satisfecho;
+                    }));
+
+                    Thread.Sleep(1000);
+
+                    lock (this)
+                    {
+                        if (clientesEsperando > 0 && !barberoDespedido[index])
+                        {
+                            Invoke(new Action(() =>
+                            {
+                                Clientes.Text = (--clientesEsperando).ToString();
+                                picClienteEsperando[clientesEsperando].Image
+                                    = Properties.Resources.Silla_de_espera;
+                            }));
+                        }
+                        else atendiendoCliente = false;
+                    }
                 }
-            }));
+                while (atendiendoCliente && !barberoDespedido[index]);
+
+                Invoke(new Action(() =>
+                {
+                    picClienteAtendido[index].Image = null;
+                    barCorte[index].Value = 0;
+                    if (barberoDespedido[index])
+                    {
+                        picBarbero[index].Image = null;
+                    }
+                }));
+            }
+            catch(InvalidOperationException e)
+            {
+                if (!this.IsDisposed) throw e;
+            }
         }
     }
 }
