@@ -113,7 +113,7 @@
             this.tableLayoutPanel3.ColumnCount = 3;
             this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 11.19082F));
             this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 88.80918F));
-            this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 90F));
+            this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 92F));
             this.tableLayoutPanel3.Controls.Add(this.pictureBox2, 2, 0);
             this.tableLayoutPanel3.Controls.Add(this.pictureBox1, 0, 0);
             this.tableLayoutPanel3.Controls.Add(this.panel4, 1, 0);
@@ -129,9 +129,9 @@
             // 
             this.pictureBox2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pictureBox2.Image = global::Barberos.Properties.Resources.Tubo;
-            this.pictureBox2.Location = new System.Drawing.Point(764, 3);
+            this.pictureBox2.Location = new System.Drawing.Point(762, 3);
             this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(85, 219);
+            this.pictureBox2.Size = new System.Drawing.Size(87, 219);
             this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
             this.pictureBox2.TabIndex = 1;
             this.pictureBox2.TabStop = false;
@@ -167,7 +167,7 @@
             this.panel4.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel4.Location = new System.Drawing.Point(88, 3);
             this.panel4.Name = "panel4";
-            this.panel4.Size = new System.Drawing.Size(670, 219);
+            this.panel4.Size = new System.Drawing.Size(668, 219);
             this.panel4.TabIndex = 2;
             // 
             // Corte3
@@ -369,7 +369,7 @@
             0,
             0,
             0});
-            this.numericUpDown1.ValueChanged += new System.EventHandler(this.numericUpDown1_ValueChanged);
+            this.numericUpDown1.ValueChanged += new System.EventHandler(this.NumericUpDown1_ValueChanged);
             // 
             // Clientes
             // 
@@ -391,7 +391,7 @@
             this.button1.TabIndex = 1;
             this.button1.Text = "Agregar Cliente";
             this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.button1.Click += new System.EventHandler(this.Button1_Click);
             // 
             // label6
             // 
@@ -425,9 +425,9 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(17, 49);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(58, 17);
+            this.label2.Size = new System.Drawing.Size(131, 17);
             this.label2.TabIndex = 3;
-            this.label2.Text = "Clientes";
+            this.label2.Text = "Clientes Esperando";
             // 
             // label4
             // 

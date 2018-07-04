@@ -14,21 +14,24 @@ namespace Barberos
 {
     public partial class Form1 : Form
     {
-        Thread[] Barberas = new Thread[5];
-        
-        private int barberos = 0, tiempo, Clientes_Esperando=0;
-        private PictureBox[] PicBarbero;
-        private PictureBox[] picCliente_Esperando;
-        private PictureBox[] picCliente_Satisfecho;
+        Thread[] threadsBarberos = new Thread[5];
+
+        private int tiempoDeCorte;
+        private int numBarberos = 1, clientesEsperando = 0;
+        private PictureBox[] picBarbero;
+        private PictureBox[] picClienteEsperando;
+        private PictureBox[] picClienteAtendido;
+        private ProgressBar[] barCorte;
+        private bool[] barberoDespedido;
 
         public Form1()
         {
             InitializeComponent();
             for (int i = 0; i < 5; i++)
             {
-                Barberas[i] = new Thread(new ParameterizedThreadStart(stBarbera_Cortando));
+                threadsBarberos[i] = new Thread(new ParameterizedThreadStart(StBarbero_Cortando));
             }
-            PicBarbero = new PictureBox[]
+            picBarbero = new PictureBox[]
             {
                 picBarbero1,
                 picBarbero2,
@@ -36,7 +39,7 @@ namespace Barberos
                 picBarbero4,
                 picBarbero5
             };
-            picCliente_Esperando = new PictureBox[]
+            picClienteEsperando = new PictureBox[]
             {
                 picCliente_Esperando1,
                 picCliente_Esperando2,
@@ -44,7 +47,7 @@ namespace Barberos
                 picCliente_Esperando4,
                 picCliente_Esperando5
             };
-            picCliente_Satisfecho = new PictureBox[]
+            picClienteAtendido = new PictureBox[]
             {
                 picCliente_Satisfecho1,
                 picCliente_Satisfecho2,
@@ -52,56 +55,89 @@ namespace Barberos
                 picCliente_Satisfecho4,
                 picCliente_Satisfecho5
             };
+
+            barCorte = new ProgressBar[]
+            {
+                Corte1,
+                Corte2,
+                Corte3,
+                Corte4,
+                Corte5
+            };
+
+            barberoDespedido = new bool[5];
+
+            tiempoDeCorte = 1000;
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void Button1_Click(object sender, EventArgs e)
         {
-            if (Convert.ToInt32(Clientes.Text) < 5)
+            bool clienteAtendido = false;
+            for (int i = 0; i < numBarberos; i++)
             {
-                picCliente_Esperando[Convert.ToInt32(Clientes.Text)].Image = Properties.Resources.Cliente;
+                if (!threadsBarberos[i].IsAlive)
+                {
+                    clienteAtendido = true;
+                    var v = new { form = this, index = i };
+                    if (threadsBarberos[i].ThreadState == ThreadState.Stopped)
+                    {
+                        threadsBarberos[i] = new Thread(new ParameterizedThreadStart(StBarbero_Cortando));
+                    }
+                    threadsBarberos[i].Start(v);
+                    break;
+                }
             }
-            Clientes.Text = (Convert.ToInt32(Clientes.Text) + 1).ToString();
-            Clientes_Esperando++;
-            var v = new { form = this, index = barberos };
-            Barberas[barberos].Start(v);
+            if (!clienteAtendido && clientesEsperando < 5)
+            {
+                picClienteEsperando[clientesEsperando].Image = Properties.Resources.Cliente;
+                Clientes.Text = (++clientesEsperando).ToString();
+            }
         }
 
         private void Tiempo_Scroll(object sender, EventArgs e)
         {
-            tiempo = Tiempo.Value * 1000;
+            tiempoDeCorte = Tiempo.Value * 1000;
         }
 
-        private void numericUpDown1_ValueChanged(object sender, EventArgs e)
+        private void NumericUpDown1_ValueChanged(object sender, EventArgs e)
         {
-            if (numericUpDown1.Value>barberos)
+            if (numericUpDown1.Value > numBarberos)
             {
-                while(barberos<numericUpDown1.Value)
+                while (numBarberos < numericUpDown1.Value)
                 {
-                    var v = new { form = this, index = barberos };
-                    Barberas[barberos].Start(v);
-                    PicBarbero[barberos].Image = Properties.Resources.Barbera;
-                    barberos++;
+                    lock (this)
+                    {
+                        if (clientesEsperando > 0 && !threadsBarberos[numBarberos].IsAlive)
+                        {
+                            Clientes.Text = (--clientesEsperando).ToString();
+                            picClienteEsperando[clientesEsperando].Image
+                                = Properties.Resources.Silla_de_espera;
+
+                            var v = new { form = this, index = numBarberos };
+                            if (threadsBarberos[numBarberos].ThreadState == ThreadState.Stopped)
+                            {
+                                threadsBarberos[numBarberos] =
+                                    new Thread(new ParameterizedThreadStart(StBarbero_Cortando));
+                            }
+                            threadsBarberos[numBarberos].Start(v);
+                        }
+                    }
+
+                    barberoDespedido[numBarberos] = false;
+                    picBarbero[numBarberos++].Image = Properties.Resources.Barbera;
                 }
             }
-            else if (numericUpDown1.Value < barberos)
+            else if (numericUpDown1.Value < numBarberos)
             {
-                while(barberos > numericUpDown1.Value)
+                while(numBarberos > numericUpDown1.Value)
                 {
-                    Barberas[barberos].Interrupt();
-                    barberos--;
-                    PicBarbero[barberos].Image = null;
+                    barberoDespedido[--numBarberos] = true;
+                    if(!threadsBarberos[numBarberos].IsAlive)
+                    {
+                        picBarbero[numBarberos].Image = null;
+                    }
                 }
             }
-        }
-
-        //var v = new { form = this, index = barberos }
-        //thread.Start(v);
-
-        static void stBarbera_Cortando(object anon)
-        {
-            var a = new { form = (Form1)null, index = 0 };
-            a = Cast(a, anon);
-            a.form.Barbera_Cortando(a.index);
         }
 
         private static T Cast<T>(T typeHolder, Object x)
@@ -111,20 +147,66 @@ namespace Barberos
             return (T)x;
         }
 
-        void Barbera_Cortando(int index)
+        static void StBarbero_Cortando(object anon)
         {
-            while (Clientes_Esperando>0)
+            var a = new { form = (Form1)null, index = 0 };
+            a = Cast(a,anon);
+            a.form.Barbero_Cortando(a.index);
+        }
+
+        void Barbero_Cortando(int index)
+        {
+            bool atendiendoCliente = true;
+            do
             {
+                int tiempo = 0;
+                Invoke(new Action(() => {
+                    picBarbero[index].Image = Properties.Resources.Barbera_cortando;
+                    picClienteAtendido[index].Image = Properties.Resources.Cliente;
+                    barCorte[index].Maximum = tiempoDeCorte;
+                    barCorte[index].Value = 0;
+                }));
+
+                while (tiempo < barCorte[index].Maximum)
+                {
+                    Thread.Sleep(1000);
+                    tiempo += 1000;
+                    Invoke(new Action(() => {
+                        barCorte[index].Value = tiempo;
+                    }));
+                }
+
+                Invoke(new Action(() => {
+                    picBarbero[index].Image = Properties.Resources.Barbera;
+                    picClienteAtendido[index].Image = Properties.Resources.Cliente_Satisfecho;
+                }));
+
                 Thread.Sleep(1000);
-                if (Clientes_Esperando < 5) picCliente_Esperando[Clientes_Esperando].Image = Properties.Resources.Silla_de_espera;
-                Clientes_Esperando--;
-                PicBarbero[barberos].Image = Properties.Resources.Barbera_cortando;
-                Thread.Sleep(tiempo);
-                PicBarbero[barberos].Image = Properties.Resources.Barbera;
-                picCliente_Satisfecho[barberos].Image = Properties.Resources.Cliente_Satisfecho;
-                Thread.Sleep(1000);
-                picCliente_Satisfecho[barberos].Image = null;
+
+                lock (this)
+                {
+                    if (clientesEsperando > 0 && !barberoDespedido[index])
+                    {
+                        Invoke(new Action(() =>
+                        {
+                            Clientes.Text = (--clientesEsperando).ToString();
+                            picClienteEsperando[clientesEsperando].Image
+                                = Properties.Resources.Silla_de_espera;
+                        }));
+                    }
+                    else atendiendoCliente = false;
+                }
             }
+            while (atendiendoCliente && !barberoDespedido[index]);
+
+            Invoke(new Action(() => {
+                picClienteAtendido[index].Image = null;
+                barCorte[index].Value = 0;
+                if (barberoDespedido[index])
+                {
+                    picBarbero[index].Image = null;
+                }
+            }));
         }
     }
 }
